@@ -4,9 +4,9 @@ from nss_handler import HandleRequests, status
 
 
 # Add your imports below this line
-from views import list_docks, retrieve_dock, delete_dock, update_dock
-from views import list_haulers, retrieve_hauler, delete_hauler, update_hauler
-from views import list_ships, retrieve_ship, delete_ship, update_ship
+from views import list_docks, retrieve_dock, delete_dock, update_dock, add_dock
+from views import list_haulers, retrieve_hauler, delete_hauler, update_hauler, add_hauler
+from views import list_ships, retrieve_ship, delete_ship, update_ship, add_ship
 
 
 class JSONServer(HandleRequests):
@@ -39,7 +39,7 @@ class JSONServer(HandleRequests):
                 response_body = retrieve_ship(url["pk"])
                 return self.response(response_body, status.HTTP_200_SUCCESS.value)
 
-            response_body = list_ships()
+            response_body = list_ships(url)
             return self.response(response_body, status.HTTP_200_SUCCESS.value)
 
         else:
@@ -113,7 +113,29 @@ class JSONServer(HandleRequests):
     def do_POST(self):
         """Handle POST requests from a client"""
 
-        pass
+        url = self.parse_url(self.path)
+        pk= url["pk"]
+
+        content_len = int(self.headers.get('content-length',0))
+        request_body = self.rfile.read(content_len)
+        request_body = json.loads(request_body)
+
+        if url["requested resource"] == "ships":
+            if pk != 0:
+                successfully_added = add_ship(pk, request_body.get('name'), request_body.get('hauler_id'))
+                if successfully_added:
+                    return self.response("", status.HTTP_201_SUCCESS_CREATED)
+        elif url["requested resource"] == "docks":
+            if pk != 0:
+                successfully_added = add_dock(pk, request_body.get('name'), request_body.get('capacity'))
+                if successfully_added:
+                    return self.response("", status.HTTP_201_SUCCESS_CREATED)
+        if url["requested resource"] == "haulers":
+            if pk != 0:
+                successfully_added = add_hauler(pk, request_body.get('name'), request_body.get('dock_id'))
+                if successfully_added:
+                    return self.response("", status.HTTP_201_SUCCESS_CREATED)
+        return self.response("Requested Resource not found", status.HTTP_404_CLIENT_ERROR_RESOURCE_NOT_FOUND.value)
 
 
 

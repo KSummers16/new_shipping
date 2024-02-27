@@ -83,3 +83,21 @@ def retrieve_hauler(pk):
         serialized_hauler = json.dumps(dict(query_results))
 
     return serialized_hauler
+
+
+def add_hauler(pk, name, dock):
+    with sqlite3.connect("./shipping.db") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Hauler (id, location, dock_id)
+        VALUES (?, ?, ?)
+        """,(pk,name, dock))
+        
+        conn.commit()
+
+        db_cursor.execute("SELECT * FROM Hauler where ID = ?", (pk,))
+        query_results = db_cursor.fetchone()
+    serialized_hauler = json.dumps(dict(query_results))
+    return serialized_hauler

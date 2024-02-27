@@ -80,3 +80,21 @@ def retrieve_dock(pk):
         serialized_dock = json.dumps(dict(query_results))
 
     return serialized_dock
+
+
+def add_dock(pk, location, capacity):
+    with sqlite3.connect("./shipping.db") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Dock (id, location, capacity)
+        VALUES (?, ?, ?)
+        """,(pk,location, capacity))
+        
+        conn.commit()
+
+        db_cursor.execute("SELECT * FROM Dock where ID = ?", (pk,))
+        query_results = db_cursor.fetchone()
+    serialized_dock = json.dumps(dict(query_results))
+    return serialized_dock
